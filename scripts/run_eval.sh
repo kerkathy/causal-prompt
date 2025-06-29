@@ -1,7 +1,10 @@
 set -ex
 
-PROMPT_TYPE=$1
-MODEL_NAME_OR_PATH=$2
+# PROMPT_TYPE=$1
+# MODEL_NAME_OR_PATH=$2
+PROMPT_TYPE=direct
+MODEL_NAME_OR_PATH=DeepSeek-R1-Distill-Qwen-7B
+URL="https://llmapi.paratera.com/v1/"
 
 # ======= Base Models =======
 # PROMPT_TYPE="cot" # direct / cot / pal / tool-integrated
@@ -18,7 +21,7 @@ MODEL_NAME_OR_PATH=$2
 
 
 OUTPUT_DIR=${MODEL_NAME_OR_PATH}/math_eval
-DATA_NAMES="gsm8k,minerva_math"
+DATA_NAMES="gsm8k"
 # DATA_NAMES="gsm8k,minerva_math,svamp,asdiv,mawps,tabmwp,mathqa,mmlu_stem,sat_math"
 SPLIT="test"
 NUM_TEST_SAMPLE=-1
@@ -41,6 +44,9 @@ python3 -u math_eval.py \
     --end -1 \
     --use_vllm \
     --save_outputs \
+    --use_openai_api \
+    --openai_base_url ${URL} \
+    --api_key ${PARATERA_API_KEY} \
     # --overwrite \
 
 

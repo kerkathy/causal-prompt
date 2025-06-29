@@ -2,21 +2,22 @@ import random
 import os
 import argparse
 import time
-from vllm import LLM, SamplingParams
 from datetime import datetime
 from tqdm import tqdm
-
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from evaluate import evaluate
 from utils import set_seed, load_jsonl, save_jsonl, construct_prompt
 from parser import *
 from trajectory import *
 from data_loader import load_data
+
+# api
+import json
+import openai
+
+# local
 from python_executor import PythonExecutor
 from model_utils import load_hf_lm_and_tokenizer, generate_completions
-
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -39,6 +40,9 @@ def parse_args():
     parser.add_argument("--save_outputs", action="store_true")
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--use_safetensors", action="store_true")
+    parser.add_argument("--use_openai_api", action="store_true", help="Use OpenAI API for vLLM")
+    parser.add_argument("--openai_base_url", type=str, default=None, help="Custom base URL for OpenAI API")
+    parser.add_argument("--api_key", type=str, default=None, help="API key for OpenAI API")
     args = parser.parse_args()
     args.top_p = 1 if args.temperature == 0 else args.top_p # top_p must be 1 when using greedy sampling (vllm)
     return args
@@ -86,10 +90,18 @@ def prepare_data(data_name, args):
 def setup(args):
     # load model
     available_gpus = os.environ['CUDA_VISIBLE_DEVICES'].split(',')
-    if args.use_vllm:
+    if args.use_openai_api:
+        import openai
+        llm = None  # OpenAI API will be used directly
+        tokenizer = None
+    elif args.use_vllm:
+        from vllm import LLM, SamplingParams
         llm = LLM(model=args.model_name_or_path, tensor_parallel_size=len(available_gpus), trust_remote_code=True)
         tokenizer = None
     else:
+        import torch
+        # from transformers import AutoTokenizer, AutoModelForCausalLM
+        from model_utils import load_hf_lm_and_tokenizer
         llm, tokenizer =  load_hf_lm_and_tokenizer(
                 model_name_or_path=args.model_name_or_path, 
                 load_in_half=True,
@@ -113,6 +125,26 @@ def setup(args):
     pad = max([len(data_name) for data_name in data_list])
     print("\t".join(data_name.ljust(pad, " ") for data_name in data_list))
     print("\t".join([f"{result['acc']:.1f}".ljust(pad, " ") for result in results]))
+
+
+def generate_with_openai(client, model_name, prompts, temperature, max_tokens, stop):
+    responses = []
+    # for prompt in prompts:
+    for prompt in tqdm(prompts, desc="Generating with OpenAI API", leave=False):
+        message = {
+            "role": "user",
+            "content": prompt
+        }
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[message],
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stop=stop,
+        )
+        # Correctly access the response object
+        responses.append(response.choices[0].message.content.strip())
+    return responses
 
 
 def main(llm, tokenizer, data_name, args):
@@ -180,7 +212,11 @@ def main(llm, tokenizer, data_name, args):
 
         # get all outputs
         prompts = [item[1] for item in current_prompts]
-        if args.use_vllm:
+        if args.use_openai_api:
+            client = openai.OpenAI(api_key=args.api_key, base_url=args.openai_base_url) if args.openai_base_url else openai
+            # generate with OpenAI API
+            outputs = generate_with_openai(client, args.model_name_or_path, prompts, args.temperature, args.max_tokens_per_call, stop_words)
+        elif args.use_vllm:
             outputs = llm.generate(prompts, SamplingParams(
                             temperature=args.temperature,
                             top_p=args.top_p,
