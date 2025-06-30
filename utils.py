@@ -59,7 +59,7 @@ def load_prompt(data_name, prompt_type):
     if prompt_type in ['tool-integrated']:
         prompt_type = "tora"
 
-    if prompt_type in ['cot', 'pal', 'tora']:
+    if prompt_type in ['cot', 'pal', 'tora', 'causal-bare', 'causal']:
         prompt_path = "./prompts/{}/{}.md".format(prompt_type, data_name)
         if not os.path.exists(prompt_path):
             prompt_path = "./prompts/{}.md".format(prompt_type)
@@ -68,16 +68,17 @@ def load_prompt(data_name, prompt_type):
                 prompt = fp.read().strip() + "\n\n\n"
         else:
             print(f"Error: prompt file {prompt_path} not found")
-            prompt = ""
+            exit()
+            # prompt = ""
     else:
         prompt = ""
     return prompt
 
 def construct_prompt(example, data_name, args):
     # Base models
-    if args.prompt_type in ["direct", "cot", "pal", "tool-integrated"]:
+    if args.prompt_type in ["direct", "cot", "pal", "tool-integrated", "causal-bare", "causal"]:
         demo_prompt = load_prompt(data_name, args.prompt_type)
-        if args.prompt_type in ["direct", "cot"]:
+        if args.prompt_type in ["direct", "cot", "causal-bare", "causal"]:
             if data_name in ["minerva_math", "math", "math_oai", "mmlu_stem", "sat_math", "mathqa", "hungarian_exam"]:
                 context = f"Problem:\n{example['question']}\nSolution:"
             else:

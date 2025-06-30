@@ -7,7 +7,7 @@ MODEL_NAME_OR_PATH=DeepSeek-R1-Distill-Qwen-7B
 URL="https://llmapi.paratera.com/v1/"
 
 # ======= Base Models =======
-# PROMPT_TYPE="cot" # direct / cot / pal / tool-integrated
+# PROMPT_TYPE="cot" # direct / cot / pal / tool-integrated / causal-bare / causal
 # MODEL_NAME_OR_PATH=${HF_MODEL_DIR}/mistral/Mistral-7B-v0.1
 # MODEL_NAME_OR_PATH=${HF_MODEL_DIR}/llemma/llemma_7b
 # MODEL_NAME_OR_PATH=${HF_MODEL_DIR}/internlm/internlm2-math-base-7b
@@ -48,17 +48,3 @@ python3 -u math_eval.py \
     --openai_base_url ${URL} \
     --api_key ${PARATERA_API_KEY} \
     # --overwrite \
-
-
-# multi-gpu
-# python3 scripts/run_eval_multi_gpus.py \
-#     --model_name_or_path $MODEL_NAME_OR_PATH \
-#     --output_dir $OUTPUT_DIR \
-#     --data_names ${DATA_NAMES} \
-#     --prompt_type "cot" \
-#     --temperature 0 \
-#     --use_vllm \
-#     --save_outputs \
-#     --available_gpus 0,1,2,3,4,5,6,7 \
-#     --gpus_per_model 1 \
-#     --overwrite
