@@ -96,7 +96,9 @@ def setup(args):
         tokenizer = None
     elif args.use_vllm:
         from vllm import LLM, SamplingParams
-        llm = LLM(model=args.model_name_or_path, tensor_parallel_size=len(available_gpus), trust_remote_code=True)
+        from huggingface_hub import snapshot_download
+        local_path = snapshot_download(args.model_name_or_path, local_files_only=True)
+        llm = LLM(model=local_path, tensor_parallel_size=len(available_gpus), trust_remote_code=True)
         tokenizer = None
     else:
         import torch
@@ -217,6 +219,7 @@ def main(llm, tokenizer, data_name, args):
             # generate with OpenAI API
             outputs = generate_with_openai(client, args.model_name_or_path, prompts, args.temperature, args.max_tokens_per_call, stop_words)
         elif args.use_vllm:
+            from vllm import SamplingParams
             outputs = llm.generate(prompts, SamplingParams(
                             temperature=args.temperature,
                             top_p=args.top_p,
