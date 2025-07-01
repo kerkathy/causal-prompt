@@ -47,4 +47,4 @@ python3 -u math_eval.py \
     --use_openai_api \
     --openai_base_url ${URL} \
     --api_key ${PARATERA_API_KEY} \
-    # --overwrite \
+    --overwrite \

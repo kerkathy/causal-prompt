@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument("--temperature", default=0, type=float)
     parser.add_argument("--n_sampling", default=1, type=int)
     parser.add_argument("--top_p", default=1, type=float)
-    parser.add_argument("--max_tokens_per_call", default=1024, type=int)
+    parser.add_argument("--max_tokens_per_call", default=2048, type=int)
     parser.add_argument("--shuffle", action="store_true")
     parser.add_argument("--use_vllm", action="store_true")
     parser.add_argument("--save_outputs", action="store_true")
@@ -194,8 +194,10 @@ def main(llm, tokenizer, data_name, args):
 
     # stop words TODO: make it more general
     stop_words = ["</s>"]
+    if "deepseek" in args.model_name_or_path:
+        stop_words.append("</think>")
 
-    if args.prompt_type in ['cot']:
+    if args.prompt_type in ['cot', 'causal-bare', 'causal']:
         stop_words.extend(["\n\nQuestion:", "\n\nProblem:"])
     if args.prompt_type in ['pal', 'tool-integrated', 'tora']:
         stop_words.extend(["\n\n---", "```output"])
