@@ -231,11 +231,12 @@ def extract_answer(pred_str, data_name):
     if data_name in ["mmlu_stem", "sat_math", "mathqa"]:
         return extract_multi_choice_answer(pred_str)
 
-    if 'final answer is $' in pred_str and '$. I hope' in pred_str:
+    if 'Final Answer: The final answer is $' in pred_str and '$. I hope' in pred_str:
         # minerva_math
-        tmp = pred_str.split('final answer is $', 1)[1]
-        pred = tmp.split('$. I hope', 1)[0].strip()
-    elif 'boxed' in pred_str:
+        tmp = pred_str.split('Final Answer: The final answer is $', 1)[1]
+        pred_str = tmp.split('$. I hope', 1)[0].strip()
+        pred = pred_str
+    if 'boxed' in pred_str:
         ans = pred_str.split('boxed')[-1]
         if len(ans) == 0:
             return ""
@@ -255,6 +256,10 @@ def extract_answer(pred_str, data_name):
         else:
             a = ans.split('$')[0].strip()
         pred = a
+    elif 'final answer is ' in pred_str and '. I hope' in pred_str:
+        # minerva_math
+        tmp = pred_str.split('final answer is ', 1)[1]
+        pred = tmp.split('. I hope', 1)[0].strip()
     elif ('he answer is' in pred_str):
         pred = pred_str.split('he answer is')[-1].strip()
     elif ('final answer is' in pred_str):
@@ -263,7 +268,7 @@ def extract_answer(pred_str, data_name):
         # fall back to program
         # pred = extract_program_output(pred_str)
     else: # use the last number
-        pattern = '-?\d*\.?\d+'
+        pattern = r'-?\d*\.?\d+'
         pred = re.findall(pattern, pred_str.replace(",", ""))
         if(len(pred) >= 1):
             pred = pred[-1]

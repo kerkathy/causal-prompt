@@ -198,7 +198,7 @@ def main(llm, tokenizer, data_name, args):
         stop_words.append("</think>")
 
     if args.prompt_type in ['cot', 'causal-bare', 'causal']:
-        stop_words.extend(["\n\nQuestion:", "\n\nProblem:"])
+        stop_words.extend(["\n\nQuestion:", "\n\nProblem:", "\n\n**Problem:**"])
     if args.prompt_type in ['pal', 'tool-integrated', 'tora']:
         stop_words.extend(["\n\n---", "```output"])
     elif args.prompt_type in ['wizard_zs', 'platypus_fs']:
