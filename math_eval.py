@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument("--temperature", default=0, type=float)
     parser.add_argument("--n_sampling", default=1, type=int)
     parser.add_argument("--top_p", default=1, type=float)
-    parser.add_argument("--max_tokens_per_call", default=2048, type=int)
+    parser.add_argument("--max_tokens_per_call", default=4096, type=int)
     parser.add_argument("--shuffle", action="store_true")
     parser.add_argument("--use_vllm", action="store_true")
     parser.add_argument("--save_outputs", action="store_true")
@@ -111,22 +111,28 @@ def setup(args):
                 use_safetensors=args.use_safetensors,
             )
 
-    # infer & eval
-    data_list = args.data_names.split(',')
-    results = []
-    for data_name in data_list:
-        results.append(main(llm, tokenizer, data_name, args))
-    
-    # add "avg" result to data_list and results
-    data_list.append("avg")
-    results.append({
-        "acc": sum([result["acc"] for result in results]) / len(results),
-    })
-    
-    # print all results
-    pad = max([len(data_name) for data_name in data_list])
-    print("\t".join(data_name.ljust(pad, " ") for data_name in data_list))
-    print("\t".join([f"{result['acc']:.1f}".ljust(pad, " ") for result in results]))
+    # after split by , there are multiple prompt types, then we will run the main function for each prompt type
+    all_prompt_types = args.prompt_type.split(',')
+    print("Prompt types:", all_prompt_types)
+    for prompt_type in all_prompt_types:
+        args.prompt_type = prompt_type.strip()
+
+        # infer & eval
+        data_list = args.data_names.split(',')
+        results = []
+        for data_name in data_list:
+            results.append(main(llm, tokenizer, data_name, args))
+        
+        # add "avg" result to data_list and results
+        data_list.append("avg")
+        results.append({
+            "acc": sum([result["acc"] for result in results]) / len(results),
+        })
+        
+        # print all results
+        pad = max([len(data_name) for data_name in data_list])
+        print("\t".join(data_name.ljust(pad, " ") for data_name in data_list))
+        print("\t".join([f"{result['acc']:.1f}".ljust(pad, " ") for result in results]))
 
 
 def generate_with_openai(client, model_name, prompts, temperature, max_tokens, stop):
@@ -194,10 +200,10 @@ def main(llm, tokenizer, data_name, args):
 
     # stop words TODO: make it more general
     stop_words = ["</s>"]
-    if "deepseek" in args.model_name_or_path:
-        stop_words.append("</think>")
 
-    if args.prompt_type in ['cot', 'causal-bare', 'causal']:
+    if args.prompt_type in ['cot', 'causal', 'causal-consistency']:
+        if "deepseek" in args.model_name_or_path:
+            stop_words.append("</think>")
         stop_words.extend(["\n\nQuestion:", "\n\nProblem:", "\n\n**Problem:**"])
     if args.prompt_type in ['pal', 'tool-integrated', 'tora']:
         stop_words.extend(["\n\n---", "```output"])

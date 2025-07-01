@@ -59,7 +59,7 @@ def load_prompt(data_name, prompt_type):
     if prompt_type in ['tool-integrated']:
         prompt_type = "tora"
 
-    if prompt_type in ['cot', 'pal', 'tora', 'causal-bare', 'causal']:
+    if prompt_type in ['cot', 'pal', 'tora', 'causal', 'causal-consistency']:
         prompt_path = "./prompts/{}/{}.md".format(prompt_type, data_name)
         if not os.path.exists(prompt_path):
             prompt_path = "./prompts/{}.md".format(prompt_type)
@@ -76,9 +76,9 @@ def load_prompt(data_name, prompt_type):
 
 def construct_prompt(example, data_name, args):
     # Base models
-    if args.prompt_type in ["direct", "cot", "pal", "tool-integrated", "causal-bare", "causal"]:
+    if args.prompt_type in ["direct", "cot", "pal", "tool-integrated", "causal", "causal-consistency"]:
         demo_prompt = load_prompt(data_name, args.prompt_type)
-        if args.prompt_type in ["direct", "cot", "causal-bare", "causal"]:
+        if args.prompt_type in ["direct", "cot", "causal", "causal-consistency"]:
             if data_name in ["minerva_math", "math", "math_oai", "mmlu_stem", "sat_math", "mathqa", "hungarian_exam"]:
                 context = f"Problem:\n{example['question']}\nSolution:"
             else:
@@ -95,7 +95,7 @@ def construct_prompt(example, data_name, args):
     elif args.prompt_type in ['self-instruct', 'tora']:
         full_prompt = f"<|user|>\n{example['question']}\n<|assistant|>\n"
     elif args.prompt_type in ['self-instruct-boxed']:
-        full_prompt = f"<|user|>\n{example['question']}\nEnclose the final answer using \\boxed{{}}.\n<|assistant|>\n"
+        full_prompt = f"<|user|>\n{example['question']}\nEnclose the final answer using \\boxed{{}} otherwise it doesnt count.\n<|assistant|>\n"
     elif args.prompt_type == "wizard_zs":
         full_prompt = (
             "Below is an instruction that describes a task. "
@@ -106,13 +106,35 @@ def construct_prompt(example, data_name, args):
     elif args.prompt_type == "deepseek-math":
         full_prompt = (
             "User: {instruction}\nPlease reason step by step, "
-            "and put your final answer within \\boxed{{}}.\n\nAssistant:"
+            "and put your final answer within \\boxed{{}} otherwise it doesnt count.\n\nAssistant:"
         )
         full_prompt = full_prompt.format(instruction=example['question'])
     elif args.prompt_type == "kpmath":
         full_prompt = (
             'User: Please reason step by step and put your final answer at the end '
             'with "The answer is: ".\n\n{instruction}\n\nAssistant:'
+        )
+        full_prompt = full_prompt.format(instruction=example['question'])
+    elif args.prompt_type == "causal-instruct":
+        full_prompt = (
+            "User: Please solve math problems by carefully identifying the cause-and-effect relationships and constraints in the problem. "
+            "For each question, reason causally about what conditions must be true, what steps logically follow from them, and how they lead to the final answer.\n"
+            'Importantly, put your final answer with \\boxed{{}} otherwise it doesnt count.\n\n'
+            "{instruction}\n\nAssistant:"
+        )
+        full_prompt = full_prompt.format(instruction=example['question'])
+    elif args.prompt_type == "causal-steps":
+        full_prompt = (
+            'User: Think about this math problem using causal reasoning principles:\n\n'
+            'Problem: {instruction}\n\n'
+            '1) What are the key variables and their relationships?'
+            '2) What do we want to determine (our "outcome")?'
+            '3) What information do we have (our "data")?'
+            '4) How can we systematically work from known to unknown?'
+            '5) What mathematical "interventions" do we need?'
+            '6) Solve step by step, checking causal consistency.'
+            '7) Importantly, put your final answer with \\boxed{{}} otherwise it doesnt count.\n\n'
+            "Assistant:"
         )
         full_prompt = full_prompt.format(instruction=example['question'])
     else:

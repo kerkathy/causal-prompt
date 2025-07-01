@@ -1,3 +1,39 @@
+def parse_latex_matrix(s):
+    """
+    Parse a LaTeX pmatrix string (optionally with a leading minus sign) into a list of lists of numbers.
+    Returns (sign, matrix) where sign is +1 or -1.
+    Example: '-\\begin{pmatrix}1&0\\\\0&1\\end{pmatrix}' -> (-1, [[1,0],[0,1]])
+    """
+    s = s.strip()
+    sign = 1
+    if s.startswith('-'):
+        sign = -1
+        s = s[1:].strip()
+    # Accept both pmatrix and bmatrix
+    m = re.match(r"\\begin\{p?matrix\}(.*?)\\end\{p?matrix\}", s)
+    if not m:
+        return None
+    body = m.group(1)
+    # Split rows by \\ (double backslash)
+    rows = [row for row in re.split(r"\\\\", body) if row.strip()]
+    matrix = []
+    for row in rows:
+        # Split columns by &
+        cols = [c.strip() for c in row.split('&')]
+        # Try to convert to int or float
+        parsed_row = []
+        for c in cols:
+            try:
+                parsed_row.append(int(c))
+            except ValueError:
+                try:
+                    parsed_row.append(float(c))
+                except ValueError:
+                    # If not a number, just keep as string
+                    parsed_row.append(c)
+        matrix.append(parsed_row)
+    return sign, matrix
+
 import re
 import regex
 import sympy
@@ -154,7 +190,7 @@ def strip_string(string):
 
     # remove percentage
     string = string.replace("\\%", "")
-    string = string.replace("\%", "")
+    string = string.replace(r"\%", "")
     string = string.replace("%", "")
 
     # " 0." equivalent to " ." and "{0." equivalent to "{." Alternatively, add "0" if "." is the start of the string
@@ -215,6 +251,30 @@ def strip_string(string):
 
     return string
 
+def matrix_equiv(ans1, ans2):
+    """
+    Returns True if two LaTeX matrices (possibly with sign) are equivalent.
+    """
+    parsed1 = parse_latex_matrix(ans1)
+    parsed2 = parse_latex_matrix(ans2)
+    if parsed1 is None or parsed2 is None:
+        return False
+    sign1, mat1 = parsed1
+    sign2, mat2 = parsed2
+    if len(mat1) != len(mat2):
+        return False
+    for r1, r2 in zip(mat1, mat2):
+        if len(r1) != len(r2):
+            return False
+        for v1, v2 in zip(r1, r2):
+            try:
+                if sign1 * float(v1) != sign2 * float(v2):
+                    return False
+            except Exception:
+                if str(v1) != str(v2):
+                    return False
+    return True
+
 
 def extract_multi_choice_answer(pred_str):
     # TODO: SFT models
@@ -231,11 +291,25 @@ def extract_answer(pred_str, data_name):
     if data_name in ["mmlu_stem", "sat_math", "mathqa"]:
         return extract_multi_choice_answer(pred_str)
 
+    pred = None
+
     if 'Final Answer: The final answer is $' in pred_str and '$. I hope' in pred_str:
         # minerva_math
         tmp = pred_str.split('Final Answer: The final answer is $', 1)[1]
         pred_str = tmp.split('$. I hope', 1)[0].strip()
         pred = pred_str
+    elif 'final answer is ' in pred_str and '. I hope' in pred_str:
+        # minerva_math
+        tmp = pred_str.split('final answer is ', 1)[1]
+        pred = tmp.split('. I hope', 1)[0].strip()
+    elif ('he answer is' in pred_str):
+        pred = pred_str.split('he answer is')[-1].strip()
+    elif ('final answer is' in pred_str):
+        pred = pred_str.split('final answer is')[-1].strip()
+    # elif extract_program_output(pred_str) != "":
+        # fall back to program
+        # pred = extract_program_output(pred_str)
+    
     if 'boxed' in pred_str:
         ans = pred_str.split('boxed')[-1]
         if len(ans) == 0:
@@ -256,18 +330,8 @@ def extract_answer(pred_str, data_name):
         else:
             a = ans.split('$')[0].strip()
         pred = a
-    elif 'final answer is ' in pred_str and '. I hope' in pred_str:
-        # minerva_math
-        tmp = pred_str.split('final answer is ', 1)[1]
-        pred = tmp.split('. I hope', 1)[0].strip()
-    elif ('he answer is' in pred_str):
-        pred = pred_str.split('he answer is')[-1].strip()
-    elif ('final answer is' in pred_str):
-        pred = pred_str.split('final answer is')[-1].strip()
-    # elif extract_program_output(pred_str) != "":
-        # fall back to program
-        # pred = extract_program_output(pred_str)
-    else: # use the last number
+
+    if pred == None: # use the last number
         pattern = r'-?\d*\.?\d+'
         pred = re.findall(pattern, pred_str.replace(",", ""))
         if(len(pred) >= 1):
@@ -373,7 +437,7 @@ def parse_question(example, data_name):
         options = '(' + options
         for ch in 'BCD':
             if f' {ch}) ' in options:
-                options = regex.sub(f' {ch}\) ', f" ({ch}) ", options)
+                options = regex.sub(rf' {ch}\) ', rf" ({ch}) ", options)
         question = f"{example['question'].strip()}\nWhat of the following is the right choice? Explain your answer.\n{options.strip()}"
     elif data_name == "mathqa":
         example['problem'] = example['problem'][0].upper() + example['problem'][1:]
@@ -384,8 +448,8 @@ def parse_question(example, data_name):
         assert 'a' == options[0], options
         for ch in 'abcde':
             if f'{ch} ) ' in options:
-                options = regex.sub(f'{ch} \) {ch} \) ', f'{ch} ) ', options)
-                options = regex.sub(f'{ch} \) ', f"({ch.upper()}) ", options)
+                options = regex.sub(rf'{ch} \) {ch} \) ', rf'{ch} ) ', options)
+                options = regex.sub(rf'{ch} \) ', rf"({ch.upper()}) ", options)
         options = options.replace(' , ', ', ')
         question = f"{example['problem'].strip()}\nWhat of the following is the right choice? Explain your answer.\n{options.strip()}"
     else:
@@ -420,17 +484,25 @@ def run_execute(executor, result, prompt_type, data_name, execute=False):
     prediction = strip_string(prediction)
     return prediction, report
 
+# Utility for answer checking: matrix-aware comparison
+def answers_equivalent(pred, gt):
+    # Try matrix equivalence first
+    if matrix_equiv(pred, gt):
+        return True
+    # Fallback: string equality
+    return pred == gt
+
 
 def _test_extract_answer():
-    text= """
-    The answer is $\\boxed{\left(                                                                                                                      
-\\begin{array}{ccc}                                                                                                                                          
- -13 & 4 & -2 \\\\
- 7 & 8 & -3 \\\\
- 0 & 18 & -7 \\\\
- 6 & 12 & 5 \\\\
-\\end{array}
-\\right)}$.
+    text= r"""
+    The answer is $\boxed{\left(                                                                                                                      
+\begin{array}{ccc}                                                                                                                                          
+ -13 & 4 & -2 \\
+ 7 & 8 & -3 \\
+ 0 & 18 & -7 \\
+ 6 & 12 & 5 \\
+\end{array}
+\right)}$.
 """
     print(extract_answer(text, "math"))
     # should output a dict
