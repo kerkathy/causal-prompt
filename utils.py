@@ -59,7 +59,7 @@ def load_prompt(data_name, prompt_type):
     if prompt_type in ['tool-integrated']:
         prompt_type = "tora"
 
-    if prompt_type in ['cot', 'pal', 'tora', 'causal', 'causal-consistency']:
+    if prompt_type in ['cot', 'pal', 'tora', 'causal', 'causal-consistency', 'causal-steps-fewshot']:
         prompt_path = "./prompts/{}/{}.md".format(prompt_type, data_name)
         if not os.path.exists(prompt_path):
             prompt_path = "./prompts/{}.md".format(prompt_type)
@@ -76,13 +76,19 @@ def load_prompt(data_name, prompt_type):
 
 def construct_prompt(example, data_name, args):
     # Base models
-    if args.prompt_type in ["direct", "cot", "pal", "tool-integrated", "causal", "causal-consistency"]:
+    if args.prompt_type in ["direct", "cot", "pal", "tool-integrated", "causal", "causal-consistency", "causal-steps-fewshot"]:
         demo_prompt = load_prompt(data_name, args.prompt_type)
         if args.prompt_type in ["direct", "cot", "causal", "causal-consistency"]:
             if data_name in ["minerva_math", "math", "math_oai", "mmlu_stem", "sat_math", "mathqa", "hungarian_exam"]:
                 context = f"Problem:\n{example['question']}\nSolution:"
             else:
                 context = f"Question: {example['question']}\nAnswer:"
+            full_prompt = demo_prompt + context
+        elif args.prompt_type == "causal-steps-fewshot":
+            if data_name in ["minerva_math", "math", "math_oai", "mmlu_stem", "sat_math", "mathqa", "hungarian_exam"]:
+                context = f"Problem:\n{example['question']}\n<causal_analysis>\n\n"
+            else:
+                context = f"Question: {example['question']}\n<causal_analysis>\n"
             full_prompt = demo_prompt + context
         elif args.prompt_type == "pal":
             context = f"Question: {example['question']}"
@@ -135,6 +141,20 @@ def construct_prompt(example, data_name, args):
             '6) Solve step by step, checking causal consistency.'
             '7) Importantly, put your final answer with \\boxed{{}} otherwise it doesnt count.\n\n'
             "Assistant:"
+        )
+        full_prompt = full_prompt.format(instruction=example['question'])
+    elif args.prompt_type == "cladder":
+        full_prompt = (
+            'Q: {instruction}\n'
+            'Guidance: Address the question by following the steps below: \n'
+            'Step 1) Extract the causal graph: Identify the causal graph that depicts the relationships in the scenario. The diagram should simply consist of edges denoted in "var1 -> var2" format, separated by commas.\n'
+            'Step 2) Determine the query type: Identify the type of query implied by the main question. Choices include "marginal probability", "conditional probability", "explaining away effect", "backdoor adjustment set", "average treatment effect", "collider bias", "normal counterfactual question", "average treatment effect on treated", "natural direct effect" or "natural indirect effect". Your answer should only be a term from the list above, enclosed in quotation marks. \n'
+            'Step 3) Formalize the query: Translate the query into its formal mathematical expression based on its type, utilizing the "do(·)" notation or counterfactual notations as needed. \n'
+            'Step 4) Gather all relevant data: Extract all the available data. Your answer should contain nothing but marginal probabilities and conditional probabilities in the form "P(...)=..." or "P(...|...)=...", each probability being separated by a semicolon. Stick to the previously mentioned denotations for the variables. \n'
+            'Step 5) Deduce the estimand using causal inference: Given all the information above, deduce the estimand using skills such as do-calculus, counterfactual prediction, and the basics of probabilities. Answer step by step. \n'
+            'Step 6) Calculate the estimand: Insert the relevant data in Step 4 into the estimand, perform basic arithmetic calculations, and derive the final answer. There is an identifiable answer. Answer step by step.\n'
+            'Based on all the reasoning above, put your final answer with \\boxed{{}} otherwise it doesnt count.\n\n'
+            "Step 1):"
         )
         full_prompt = full_prompt.format(instruction=example['question'])
     else:

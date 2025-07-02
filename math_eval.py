@@ -201,7 +201,11 @@ def main(llm, tokenizer, data_name, args):
     # stop words TODO: make it more general
     stop_words = ["</s>"]
 
-    if args.prompt_type in ['cot', 'causal', 'causal-consistency']:
+    if "Qwen" in args.model_name_or_path:
+        stop_words.append(" is the final answer.")
+
+    if args.prompt_type in ['cot', 'causal', 'causal-consistency', 'causal-steps', 'causal-steps-fewshot']:
+        # avoid continual generation conditioned on few-shot prompts
         if "deepseek" in args.model_name_or_path:
             stop_words.append("</think>")
         stop_words.extend(["\n\nQuestion:", "\n\nProblem:", "\n\n**Problem:**"])
