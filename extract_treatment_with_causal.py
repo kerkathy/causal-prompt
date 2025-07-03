@@ -1,14 +1,14 @@
 import json
 
 # Set your file paths here
-treatment_prompt_type = "causal"
-control_prompt_type = "cot"
+treatment_prompt_type = "self-instruct-boxed"
+control_prompt_type = "cladder"
 data_size = -1
 model_name_or_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
 dataset_name = "minerva_math"
 
-treatment_path = f"{model_name_or_path}/math_eval/{dataset_name}/test_{treatment_prompt_type}_{data_size}_seed0_t0.0_s0_e-1.jsonl"
-control_path = f"{model_name_or_path}/math_eval/{dataset_name}/test_{control_prompt_type}_{data_size}_seed0_t0.0_s0_e-1.jsonl"
+treatment_path = f"output/{model_name_or_path}/math_eval/{dataset_name}/test_{treatment_prompt_type}_{data_size}_seed0_t0.0_s0_e-1.jsonl"
+control_path = f"output/{model_name_or_path}/math_eval/{dataset_name}/test_{control_prompt_type}_{data_size}_seed0_t0.0_s0_e-1.jsonl"
 
 # Choose the unique key to match items (update if needed)
 UNIQUE_KEY = "idx"
@@ -20,11 +20,13 @@ def load_jsonl(path):
 def main():
     treatment = load_jsonl(treatment_path)
     control = load_jsonl(control_path)
+    print(f"Evaluating treatment file: {treatment_path}")
+    print(f"Evaluating control file: {control_path}")
 
     # Only consider treatment items mentioning "causal" in code
     filtered_treatment = [
         item for item in treatment
-        if "code" in item and "causal" in item["code"][0]
+        # if "code" in item and "causal" in item["code"][0]
     ]
 
     # Build control lookup table by unique key
@@ -46,16 +48,16 @@ def main():
             c_score = bool(c_item["score"][0])
             matrix[(c_score, t_score)].append(t_item[UNIQUE_KEY])
 
-    print("Confusion Matrix (control -> treatment):")
+    print(f"Confusion Matrix (control [{control_prompt_type}] -> treatment [{treatment_prompt_type}]):")
     print("             | Treatment False | Treatment True")
     print("-------------+-----------------+---------------")
-    print(f"Control False | {len(matrix[(False, False)]:>15)} | {len(matrix[(False, True)]):>13}")
-    print(f"Control True  | {len(matrix[(True, False)]:>15)} | {len(matrix[(True, True)]:>13)}")
+    print(f"Control False | {len(matrix[(False, False)]):>15} | {len(matrix[(False, True)]):>13}")
+    print(f"Control True  | {len(matrix[(True, False)]):>15} | {len(matrix[(True, True)]):>13}")
     print(f"Total: {sum(len(v) for v in matrix.values())}, should be {len(filtered_treatment)}")
 
     for (c_score, t_score), idx_list in matrix.items():
         if c_score != t_score:
-            print(f"Control {c_score} -> Treatment {t_score} : {idx_list}")
+            print(f"{c_score} -> {t_score} : {idx_list}\n")
 
 if __name__ == "__main__":
     main()
