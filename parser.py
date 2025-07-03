@@ -291,65 +291,90 @@ def extract_answer(pred_str, data_name):
     if data_name in ["mmlu_stem", "sat_math", "mathqa"]:
         return extract_multi_choice_answer(pred_str)
 
-    pred = None
+    pred = pred_str
 
-    # extract -2 from "the final answer is $-2$"
-    patt = re.search(r"the final answer is \$(-?\d+)\$", pred_str)
-    if patt is not None:
-        pred_str = patt.group(1)
-    # extract -2 from "Final Answer: ... is $-2$ ... ."
-    else:
-        patt = re.search(r"Final Answer: .*?is \$(-?\d+)\$", pred_str)
-        if patt is not None:
-            pred_str = patt.group(1)
-        elif 'final answer is ' in pred_str and '. I ' in pred_str:
-            # minerva_math
-            tmp = pred_str.split('final answer is ', 1)[1]
-            pred = tmp.split('. I ', 1)[0].strip()
-        elif ('he answer is' in pred_str):
-            pred = pred_str.split('he answer is')[-1].strip()
-        elif ('final answer is' in pred_str):
-            pred = pred_str.split('final answer is')[-1].strip()
-        # elif extract_program_output(pred_str) != "":
-            # fall back to program
-            # pred = extract_program_output(pred_str)
-        elif 'Final Answer:' in pred_str and 'is $' in pred_str and 'I hope' in pred_str:
-            # extract Final Answer: ... is $xxx$ ... I hope
-            tmp = pred_str.split('Final Answer:')[1]
-            tmp = tmp.split('is $')[1]
-            pred_str = tmp.split('$')[0].strip()
-            pred = pred_str
+    # List of (pattern, group, description) for answer extraction
+    regex_patterns = [
+        # e.g. "Final Answer: The roots are $3$, $5$, and $7$. I hope it is correct."
+        (r"Final Answer: .*?(?:are|is) ([^.]+)\. I hope", 1, "Final Answer: ... are/is ... . I hope"),
+        # e.g. "Final Answer: ... is $-2$ ... ."
+        (r"Final Answer: .*?is [^$]*\$([^$]+)\$.", 1, "Final Answer: ... is $...$"),
+        # e.g. the final answer is ...  $-2$
+        (r"final answer is.*? \$([^$]+)\$.", 1, "final answer is ... $...$"),
+        # e.g. "The answer is $...$"
+        (r"[Tt]he answer is \$([^$]+)\$.", 1, "The answer is $...$"),
+        # e.g. "The answer is ..."
+        (r"[Tt]he answer is ([^\n\.]*).", 1, "The answer is ..."),
+        # e.g. "final answer is ..."
+        (r"final answer is ([^\n\.]*).", 1, "final answer is ..."),
+        # e.g. "he answer is ..."
+        (r"he answer is ([^\n\.]*).", 1, "he answer is ..."),
+    ]
 
-        if 'boxed' in pred_str:
-            ans = pred_str.split('boxed')[-1]
-            if len(ans) == 0:
-                return ""
-            elif ans[0] == '{':
-                stack = 1
-                a = ''
-                for c in ans[1:]:
-                    if (c == '{'):
-                        stack += 1
-                        a += c
-                    elif (c == '}'):
-                        stack -= 1
-                        if (stack == 0): break
-                        a += c
-                    else:
-                        a += c
-            else:
-                a = ans.split('$')[0].strip()
-            pred = a
+    # Collect all matches for all patterns, keep the one that appears last in the text
+    last_match = None
+    last_group = None
+    last_pos = -1
+    for patt, group, _ in regex_patterns:
+        for m in re.finditer(patt, pred_str):
+            if m.start() > last_pos:
+                last_match = m
+                last_group = group
+                last_pos = m.start()
+    if last_match is not None:
+        pred = last_match.group(last_group).strip()
+        
+        # Handle multiple numbers in dollar signs like "$3$, $5$, and $7$"
+        if '$' in pred and ',' in pred:
+            # Extract all numbers from dollar signs
+            dollar_numbers = re.findall(r'\$([^$]+)\$', pred)
+            if dollar_numbers:
+                # Join the numbers with commas
+                pred = ','.join(dollar_numbers)
+        # Handle single number in dollar signs like "$3$"
+        elif '$' in pred:
+            dollar_match = re.search(r'\$([^$]+)\$', pred)
+            if dollar_match:
+                pred = dollar_match.group(1)
 
-    if pred == None: # use the last number
+    # Special handling for boxed answers
+    if 'boxed' in pred:
+        ans = pred.split('boxed', 1)[-1]
+        if len(ans) == 0:
+            return ""
+        elif ans[0] == '{':
+            stack = 1
+            a = ''
+            for c in ans[1:]:
+                if c == '{':
+                    stack += 1
+                    a += c
+                elif c == '}':
+                    stack -= 1
+                    if stack == 0:
+                        break
+                    a += c
+                else:
+                    a += c
+        else:
+            a = ans.split('$')[0].strip()
+        pred = a
+
+    # minerva_math: 'final answer is ... . I ...'
+    if pred == pred_str and 'final answer is ' in pred_str and '. I ' in pred_str:
+        tmp = pred_str.split('final answer is ', 1)[1]
+        pred = tmp.split('. I ', 1)[0].strip()
+
+    # Fallback: use the last number in the string
+    if pred == pred_str:
         pattern = r'-?\d*\.?\d+'
-        pred = re.findall(pattern, pred_str.replace(",", ""))
-        if(len(pred) >= 1):
-            pred = pred[-1]
-        else: pred = ''
+        numbers = re.findall(pattern, pred_str.replace(",", ""))
+        if numbers:
+            pred = numbers[-1]
+        else:
+            pred = ''
 
-    # multiple line
-    # pred = pred.split("\n")[0]
+    # Clean up answer
     pred = re.sub(r"\n\s*", "", pred)
     if pred != "" and pred[0] == ":":
         pred = pred[1:]
