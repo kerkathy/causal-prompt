@@ -293,49 +293,53 @@ def extract_answer(pred_str, data_name):
 
     pred = None
 
-    if 'Final Answer: The final answer is $' in pred_str and '$. I ' in pred_str:
-        # minerva_math
-        tmp = pred_str.split('Final Answer: The final answer is $', 1)[1]
-        pred_str = tmp.split('$. I ', 1)[0].strip()
-        pred = pred_str
-    elif 'final answer is ' in pred_str and '. I ' in pred_str:
-        # minerva_math
-        tmp = pred_str.split('final answer is ', 1)[1]
-        pred = tmp.split('. I ', 1)[0].strip()
-    elif ('he answer is' in pred_str):
-        pred = pred_str.split('he answer is')[-1].strip()
-    elif ('final answer is' in pred_str):
-        pred = pred_str.split('final answer is')[-1].strip()
-    # elif extract_program_output(pred_str) != "":
-        # fall back to program
-        # pred = extract_program_output(pred_str)
-    elif 'Final Answer:' in pred_str and 'is $' in pred_str and '$. I ' in pred_str:
-        # extract Final Answer: xxx is $xxx$. I hope
-        tmp = pred_str.split('Final Answer:')[1]
-        tmp = tmp.split('is $')[1]
-        pred_str = tmp.split('$. I ')[0].strip()
-        pred = pred_str
+    # extract -2 from "the final answer is $-2$"
+    patt = re.search(r"the final answer is \$(-?\d+)\$", pred_str)
+    if patt is not None:
+        pred_str = patt.group(1)
+    # extract -2 from "Final Answer: ... is $-2$ ... ."
+    else:
+        patt = re.search(r"Final Answer: .*?is \$(-?\d+)\$", pred_str)
+        if patt is not None:
+            pred_str = patt.group(1)
+        elif 'final answer is ' in pred_str and '. I ' in pred_str:
+            # minerva_math
+            tmp = pred_str.split('final answer is ', 1)[1]
+            pred = tmp.split('. I ', 1)[0].strip()
+        elif ('he answer is' in pred_str):
+            pred = pred_str.split('he answer is')[-1].strip()
+        elif ('final answer is' in pred_str):
+            pred = pred_str.split('final answer is')[-1].strip()
+        # elif extract_program_output(pred_str) != "":
+            # fall back to program
+            # pred = extract_program_output(pred_str)
+        elif 'Final Answer:' in pred_str and 'is $' in pred_str and 'I hope' in pred_str:
+            # extract Final Answer: ... is $xxx$ ... I hope
+            tmp = pred_str.split('Final Answer:')[1]
+            tmp = tmp.split('is $')[1]
+            pred_str = tmp.split('$')[0].strip()
+            pred = pred_str
 
-    if 'boxed' in pred_str:
-        ans = pred_str.split('boxed')[-1]
-        if len(ans) == 0:
-            return ""
-        elif ans[0] == '{':
-            stack = 1
-            a = ''
-            for c in ans[1:]:
-                if (c == '{'):
-                    stack += 1
-                    a += c
-                elif (c == '}'):
-                    stack -= 1
-                    if (stack == 0): break
-                    a += c
-                else:
-                    a += c
-        else:
-            a = ans.split('$')[0].strip()
-        pred = a
+        if 'boxed' in pred_str:
+            ans = pred_str.split('boxed')[-1]
+            if len(ans) == 0:
+                return ""
+            elif ans[0] == '{':
+                stack = 1
+                a = ''
+                for c in ans[1:]:
+                    if (c == '{'):
+                        stack += 1
+                        a += c
+                    elif (c == '}'):
+                        stack -= 1
+                        if (stack == 0): break
+                        a += c
+                    else:
+                        a += c
+            else:
+                a = ans.split('$')[0].strip()
+            pred = a
 
     if pred == None: # use the last number
         pattern = r'-?\d*\.?\d+'
