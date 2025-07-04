@@ -154,6 +154,14 @@ def strip_string(string):
     string = string.replace("\\right", "")
     string = string.replace("\\{", "{")
     string = string.replace("\\}", "}")
+    
+    # remove LaTeX inline math delimiters \( and \) when they wrap the entire expression
+    if string.startswith("\\(") and string.endswith("\\)"):
+        string = string[2:-2]
+    
+    # remove inline math delimiters \( and \)
+    string = string.replace("\\(", "")
+    string = string.replace("\\)", "")
 
     # Remove unit: miles, dollars if after is not none
     _string = re.sub(r"\\text{.*?}$", "", string).strip()
@@ -164,6 +172,14 @@ def strip_string(string):
     # Remove unit: texts
     for _ in range(2):
         for unit_text in unit_texts:
+            # Skip single letters if they appear in algebraic contexts (between operators/parentheses)
+            if len(unit_text) == 1 and unit_text.isalpha():
+                # Check if this single letter appears in an algebraic context
+                # Look for patterns like (a+, a-, a*, a/, +a, -a, *a, /a, =a, a=
+                algebraic_pattern = r"[\(\)\+\-\*/=]" + unit_text + r"[\(\)\+\-\*/=]"
+                if re.search(algebraic_pattern, string):
+                    continue  # Skip removing this single letter
+            
             # use regex, the prefix should be either the start of the string or a non-alphanumeric character
             # the suffix should be either the end of the string or a non-alphanumeric character
             _string = re.sub(r"(^|\W)" + unit_text + r"($|\W)", r"\1\2", string)
@@ -183,6 +199,8 @@ def strip_string(string):
 
     # replace "\\text{...}" to "..."
     string = re.sub(r"\\text\{(.*?)\}", r"\1", string)
+    # replace "\\textbf{...}" to "..."
+    string = re.sub(r"\\textbf\{(.*?)\}", r"\1", string)
     for key in ['x=', 'y=', 'z=', 'x\\in', 'y\\in', 'z\\in', 'x\\to', 'y\\to', 'z\\to']:
         string = string.replace(key, "")
     string = string.replace("\\emptyset", r"{}")
@@ -291,6 +309,10 @@ def extract_answer(pred_str, data_name):
     if data_name in ["mmlu_stem", "sat_math", "mathqa"]:
         return extract_multi_choice_answer(pred_str)
 
+    # Cap the string at "I hope it is correct" and ignore everything after
+    if "I hope it is correct" in pred_str:
+        pred_str = pred_str.split("I hope it is correct")[0] + "I hope it is correct"
+
     pred = pred_str
 
     # List of (pattern, group, description) for answer extraction
@@ -303,12 +325,19 @@ def extract_answer(pred_str, data_name):
         (r"final answer is.*? \$([^$]+)\$.", 1, "final answer is ... $...$"),
         # e.g. "The answer is $...$"
         (r"[Tt]he answer is \$([^$]+)\$.", 1, "The answer is $...$"),
+        # e.g. "The answer is a/an ..."
+        (r"[Tt]he answer is (?:a|an) ([^\n\.]*).", 1, "The answer is a/an ..."),
         # e.g. "The answer is ..."
         (r"[Tt]he answer is ([^\n\.]*).", 1, "The answer is ..."),
+        # e.g. "final answer is a/an ..."
+        (r"final answer is (?:a|an) ([^\n\.]*).", 1, "final answer is a/an ..."),
         # e.g. "final answer is ..."
         (r"final answer is ([^\n\.]*).", 1, "final answer is ..."),
+        # e.g. "he answer is a/an ..."
+        (r"he answer is (?:a|an) ([^\n\.]*).", 1, "he answer is a/an ..."),
         # e.g. "he answer is ..."
         (r"he answer is ([^\n\.]*).", 1, "he answer is ..."),
+        
     ]
 
     # Collect all matches for all patterns, keep the one that appears last in the text

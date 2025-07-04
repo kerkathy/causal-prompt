@@ -1,8 +1,8 @@
 import json
 
 # Set your file paths here
-treatment_prompt_type = "self-instruct-boxed"
-control_prompt_type = "cladder"
+control_prompt_type = "cot"
+treatment_prompt_type = "causal-steps-fewshot"
 data_size = -1
 model_name_or_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
 dataset_name = "minerva_math"
@@ -26,7 +26,7 @@ def main():
     # Only consider treatment items mentioning "causal" in code
     filtered_treatment = [
         item for item in treatment
-        # if "code" in item and "causal" in item["code"][0]
+        if "code" in item and "causal" in item["code"][0]
     ]
 
     # Build control lookup table by unique key
