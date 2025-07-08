@@ -1,8 +1,8 @@
 set -ex
 
 export HF_ENDPOINT="https://hf-mirror.com"
-export TRANSFORMERS_OFFLINE=1
-export HF_DATASETS_OFFLINE=1
+# export TRANSFORMERS_OFFLINE=1
+# export HF_DATASETS_OFFLINE=1
 
 PROMPT_TYPE=$1
 # MODEL_NAME_OR_PATH=$2
@@ -10,13 +10,14 @@ PROMPT_TYPE=$1
 # PROMPT_TYPE=causal-steps,causal-steps-fewshot
 
 # MODEL_NAME_OR_PATH=DeepSeek-R1-Distill-Qwen-7B
+# MODEL_NAME_OR_PATH="microsoft/phi-4"
 MODEL_NAME_OR_PATH="deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
 # MODEL_NAME_OR_PATH="Qwen/Qwen2.5-7B-Instruct"
 # MODEL_NAME_OR_PATH="Qwen/Qwen2.5-7B"
 URL="https://llmapi.paratera.com/v1/"
 
 # ======= Base Models =======
-# PROMPT_TYPE="cot" # direct / cot / pal / tool-integrated / causal / causal-consistency
+# PROMPT_TYPE="cot" # direct / cot / pal / tool-integrated / causal / causal-consistency / cot-8shot
 # MODEL_NAME_OR_PATH=${HF_MODEL_DIR}/mistral/Mistral-7B-v0.1
 # MODEL_NAME_OR_PATH=${HF_MODEL_DIR}/llemma/llemma_7b
 # MODEL_NAME_OR_PATH=${HF_MODEL_DIR}/internlm/internlm2-math-base-7b

@@ -97,7 +97,8 @@ def setup(args):
     elif args.use_vllm:
         from vllm import LLM, SamplingParams
         from huggingface_hub import snapshot_download
-        local_path = snapshot_download(args.model_name_or_path, local_files_only=True)
+        local_path = snapshot_download(args.model_name_or_path)
+        # local_path = snapshot_download(args.model_name_or_path, local_files_only=True)
         llm = LLM(model=local_path, tensor_parallel_size=len(available_gpus), trust_remote_code=True)
         tokenizer = None
     else:
@@ -265,8 +266,6 @@ def main(llm, tokenizer, data_name, args):
                 if "```python" in output:
                     output = extract_program(query)
                 remain_codes.append(output)
-            elif args.prompt_type == "cot":
-                end_prompts.append((i, query))
             elif ("boxed" not in output and output.endswith("```")):
                 program = extract_program(query)
                 remain_prompts.append((i, query))

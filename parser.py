@@ -402,6 +402,11 @@ def extract_answer(pred_str, data_name):
             pred = numbers[-1]
         else:
             pred = ''
+        numbers = re.findall(pattern, pred_str.replace(",", ""))
+        if numbers:
+            pred = numbers[-1]
+        else:
+            pred = ''
 
     # Clean up answer
     pred = re.sub(r"\n\s*", "", pred)

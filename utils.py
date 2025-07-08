@@ -76,9 +76,9 @@ def load_prompt(data_name, prompt_type):
 
 def construct_prompt(example, data_name, args):
     # Base models
-    if args.prompt_type in ["direct", "cot", "pal", "tool-integrated", "causal", "causal-consistency", "causal-steps-fewshot"]:
+    if args.prompt_type in ["direct", "cot", "pal", "tool-integrated", "causal", "causal-consistency", "causal-steps-fewshot", "cot-8shot", "causal-8shot"]:
         demo_prompt = load_prompt(data_name, args.prompt_type)
-        if args.prompt_type in ["direct", "cot", "causal", "causal-consistency"]:
+        if args.prompt_type in ["direct", "cot-8shot", "causal-8shot", "cot", "causal", "causal-consistency"]:
             if data_name in ["minerva_math", "math", "math_oai", "mmlu_stem", "sat_math", "mathqa", "hungarian_exam"]:
                 context = f"Problem:\n{example['question']}\nSolution:"
             else:
