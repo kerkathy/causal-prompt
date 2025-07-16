@@ -73,17 +73,34 @@ def prepare_data(data_name, args):
     # load all processed samples
     processed_samples = []
     if not args.overwrite:
-        processed_files = [f for f in os.listdir(f"{args.output_dir}/{data_name}/") if f.endswith(".jsonl") and f.startswith(out_file_prefix)]    
+        processed_files = [f for f in os.listdir(f"{args.output_dir}/{data_name}/") if f.endswith(".jsonl") and f.startswith(out_file_prefix)]   
         for f in processed_files:
             processed_samples.extend(list(load_jsonl(f"{args.output_dir}/{data_name}/{f}")))
 
     # dedepulicate
-    processed_samples = {sample['idx']: sample for sample in processed_samples}
-    processed_idxs = list(processed_samples.keys())
-    processed_samples = list(processed_samples.values())
+    print("len(processed_samples):", len(processed_samples))
+    
+    # Check for duplicates and keep first occurrence
+    processed_dict = {}
+    duplicate_count = 0
+    for sample in processed_samples:
+        idx = sample['idx']
+        if idx not in processed_dict:
+            processed_dict[idx] = sample
+        else:
+            duplicate_count += 1
+            print(f"Duplicate idx {idx} found. Keeping first occurrence.")
+            print(f"  First: {list(processed_dict[idx].keys())}")
+            print(f"  Duplicate: {list(sample.keys())}")
+    
+    print(f"Found {duplicate_count} duplicate samples")
+    processed_idxs = list(processed_dict.keys())
+    processed_samples = list(processed_dict.values())
+
+
     total_examples = len(examples)
     examples = [example for example in examples if example['idx'] not in processed_idxs]
-    # print(f"Idx {args.start} - {args.end}: Remain {len(examples)}/{total_examples} samples.")
+    print(f"Idx {args.start} - {args.end}: Remain {len(examples)}/{total_examples} samples.")
     return examples, processed_samples, out_file
 
 
@@ -323,7 +340,7 @@ def main(llm, tokenizer, data_name, args):
     all_samples, result_json = evaluate(samples=all_samples, data_name=data_name, prompt_type=args.prompt_type, execute=True)
 
     # save outputs
-    if len(processed_samples) < len(all_samples) and args.save_outputs:
+    if args.save_outputs:
         save_jsonl(all_samples, out_file)
     
     result_json['time_use_in_second'] = time_use
