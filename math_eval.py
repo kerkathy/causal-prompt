@@ -197,6 +197,21 @@ def main(llm, tokenizer, data_name, args):
 
         if idx == args.start:
             print(full_prompt)
+            # Save the complete prompt example to a file
+            prompt_file = out_file.replace(".jsonl", "_prompt_example.txt")
+            with open(prompt_file, "w", encoding="utf-8") as f:
+                f.write(f"Dataset: {data_name}\n")
+                f.write(f"Prompt Type: {args.prompt_type}\n")
+                f.write(f"Model: {args.model_name_or_path}\n")
+                f.write(f"Example Index: {idx}\n")
+                f.write(f"Temperature: {args.temperature}\n")
+                f.write("=" * 80 + "\n")
+                f.write("COMPLETE PROMPT:\n")
+                f.write("=" * 80 + "\n")
+                f.write(full_prompt)
+                f.write("\n" + "=" * 80 + "\n")
+                f.write(f"Ground Truth Answer: {gt_ans}\n")
+            print(f"Saved prompt example to: {prompt_file}")
 
         sample = {'idx': idx, 'question': example['question'], 'gt_cot': gt_cot, 'gt': gt_ans, 'prompt': full_prompt}
 
