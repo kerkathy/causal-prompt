@@ -296,19 +296,37 @@ def matrix_equiv(ans1, ans2):
 
 def extract_multi_choice_answer(pred_str):
     # TODO: SFT models
-    if 'Problem:' in pred_str:
-        pred_str = pred_str.split("Problem:", 1)[0]
-    pred_str = pred_str.replace("choice is", "answer is")
-    patt = regex.search(r"answer is \(?(?P<ans>[abcde])\)?", pred_str.lower())
-    if patt is not None:
-        return patt.group('ans').upper()
+    # Patterns to match A/B/C/D/E in various answer formats
+    regex_patterns = [
+        # Final Answer: The final answer is $(B)$.
+        (r"final answer is.*?\$\((?P<ans>[abcde])\)\$", "ans"),
+        (r"final answer is.*?\((?P<ans>[abcde])\)", "ans"),
+        (r"final answer is.*?(?P<ans>[abcde])[\.\s]", "ans"),
+        (r"Final Answer: .*?\$\((?P<ans>[abcde])\)\$", "ans"),
+        (r"Final Answer: .*?\((?P<ans>[abcde])\)", "ans"),
+        (r"Final Answer: .*?(?P<ans>[abcde])[\.\s]", "ans"),
+        (r"answer is \(?(?P<ans>[abcde])\)?", "ans"),
+        (r"the answer is \(?(?P<ans>[abcde])\)?", "ans"),
+        (r"\$?\(?([abcde])\)?\$?", 1),  # fallback: just (B) or $B$
+    ]
+    pred_str = pred_str.lower()
+    for patt in regex_patterns:
+        if isinstance(patt, tuple) and len(patt) == 2 and isinstance(patt[1], str):
+            m = regex.search(patt[0], pred_str)
+            if m:
+                return m.group(patt[1]).upper()
+        elif isinstance(patt, tuple) and len(patt) == 2 and isinstance(patt[1], int):
+            m = regex.search(patt[0], pred_str)
+            if m:
+                return m.group(patt[1]).upper()
     return 'placeholder'
 
 
 def extract_answer(pred_str, data_name):
+    # multi-choice datasets
     if data_name in ["mmlu_stem", "sat_math", "mathqa"]:
         return extract_multi_choice_answer(pred_str)
-
+ 
     # Cap the string at "I hope it is correct" and ignore everything after
     if "I hope it is correct" in pred_str:
         pred_str = pred_str.split("I hope it is correct")[0] + "I hope it is correct"
@@ -325,6 +343,8 @@ def extract_answer(pred_str, data_name):
         (r"final answer is.*? \$([^$]+)\$.", 1, "final answer is ... $...$"),
         # e.g. "The answer is $...$"
         (r"[Tt]he answer is \$([^$]+)\$.", 1, "The answer is $...$"),
+        # e.g. "The answer is **...**"
+        (r"[Tt]he answer is \*\*([^*]+)\*\*.", 1, "The answer is **...**"),
         # e.g. "The answer is a/an ..."
         (r"[Tt]he answer is (?:a|an) ([^\n\.]*).", 1, "The answer is a/an ..."),
         # e.g. "The answer is ..."
@@ -538,7 +558,7 @@ def parse_question(example, data_name):
     if gt_lower in ["true", "false"]:
         question += " (True or False)"
     if gt_lower in ["yes", "no"]:
-        question += " (Yes or No)"
+        question += " End the answer with 'The final answer is $yes$' or 'The final answer is $no$'."
     return question.strip()
 
 

@@ -86,9 +86,9 @@ def construct_prompt(example, data_name, args):
             full_prompt = demo_prompt + context
         elif args.prompt_type == "causal-steps-fewshot":
             if data_name in ["minerva_math", "math", "math_oai", "mmlu_stem", "sat_math", "mathqa", "hungarian_exam", "cladder"]:
-                context = f"Problem: {example['question']}\n\n<causal_analysis>\n\n"
+                context = f"Problem: {example['question']}\n\n<causal_analysis>\n"
             else:
-                context = f"Question: {example['question']}\n\n<causal_analysis>\n\n"
+                context = f"Question: {example['question']}\n\n<causal_analysis>\n"
             full_prompt = demo_prompt + context
         elif args.prompt_type == "pal":
             context = f"Question: {example['question']}"
