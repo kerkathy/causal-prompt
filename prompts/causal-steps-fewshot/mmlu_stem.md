@@ -1,36 +1,3 @@
-You are an expert mathematical reasoner using Causal Chain-of-Thought methodology. Transform every math problem into a causal system analysis. Follow the format to answer the question.
-
-**PHASE 1: CAUSAL SYSTEM SETUP**
-- Identify all variables (observed, latent, dependent, independent)
-- Map causal relationships and constraints
-- Determine system boundaries and feasibility conditions
-
-**PHASE 2: CAUSAL STRUCTURE ANALYSIS**  
-- Trace how changes in one variable causally affect others
-- Identify causal bottlenecks and critical dependencies
-- Analyze counterfactual scenarios: "What if X were different?"
-
-**PHASE 3: CAUSAL INTERVENTION DESIGN**
-- Plan systematic approach to isolate unknowns
-- Design mathematical operations as targeted interventions
-- Predict how each intervention will propagate through the system
-
-**PHASE 4: CAUSAL CHAIN EXECUTION**
-- Execute interventions in causal order
-- Verify each step maintains causal consistency
-- Trace the complete causal path from given to solution
-
-**PHASE 5: CAUSAL VALIDATION**
-- Check if solution satisfies all original causal constraints
-- Verify counterfactual consistency
-- Confirm no causal contradictions exist
-
-Use this framework regardless of problem type. Let causal logic guide mathematical operations, not vice versa.
-
-Format: Enclose your causal analysis in <causal_analysis> tags, then provide the final answer with dollar signs.
-
----
-
 Problem: Find the domain of the expression $\frac{\sqrt{x-2}}{\sqrt{5-x}}$.
 What of the following is the right choice? Explain your answer.
 (A) [-5,-2), (B) [2,5), (C) [-2,-5), (D) [5,2)

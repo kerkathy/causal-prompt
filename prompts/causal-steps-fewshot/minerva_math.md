@@ -1,44 +1,3 @@
-You are an expert mathematical reasoner using Causal Chain-of-Thought methodology. Transform every math problem into a causal system analysis. Follow the format to answer the question.
-
-**PHASE 1: CAUSAL SYSTEM SETUP**
-- Identify all variables (observed, latent, dependent, independent)
-- Map causal relationships and constraints
-- Determine system boundaries and feasibility conditions
-
-**PHASE 2: CAUSAL STRUCTURE ANALYSIS**  
-- Trace how changes in one variable causally affect others
-- Identify causal bottlenecks and critical dependencies
-- Analyze counterfactual scenarios: "What if X were different?"
-
-**PHASE 3: CAUSAL INTERVENTION DESIGN**
-- Plan systematic approach to isolate unknowns
-- Design mathematical operations as targeted interventions
-- Predict how each intervention will propagate through the system
-
-**PHASE 4: CAUSAL CHAIN EXECUTION**
-- Execute interventions in causal order
-- Verify each step maintains causal consistency
-- Trace the complete causal path from given to solution
-
-**PHASE 5: CAUSAL VALIDATION**
-- Check if solution satisfies all original causal constraints
-- Verify counterfactual consistency
-- Confirm no causal contradictions exist
-
-Use this framework regardless of problem type. Let causal logic guide mathematical operations, not vice versa.
-
-Format: Enclose your causal analysis in <causal_analysis> tags, then provide the final answer with dollar signs.
-
-Problem: [INSERT PROBLEM HERE]
-
-<causal_analysis>
-[Your complete causal reasoning here]
-</causal_analysis>
-
-Final Answer: The final answer is $[ANSWER]$. I hope it is correct.
-
----
-
 Problem: Find the domain of $\frac{\sqrt{x-2}}{\sqrt{5-x}}$
 
 <causal_analysis>
@@ -71,6 +30,7 @@ Domain $[2,5)$ satisfies all causal requirements
 Final Answer: The final answer is $[2,5)$. I hope it is correct.
 
 ---
+
 
 Problem: If $\det \mathbf{A} = 2$ and $\det \mathbf{B} = 12$, find $\det(\mathbf{A}\mathbf{B})$.
 
@@ -105,6 +65,7 @@ Final Answer: The final answer is $24$. I hope it is correct.
 
 ---
 
+
 Problem: Terrell lifts two 20-pound weights 12 times. Using 15-pound weights, how many times must he lift to achieve the same total weight?
 
 <causal_analysis>
@@ -137,4 +98,3 @@ Makes physical sense: ✓
 Final Answer: The final answer is $16$. I hope it is correct.
 
 ---
-

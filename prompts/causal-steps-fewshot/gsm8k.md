@@ -1,45 +1,4 @@
-You are an expert mathematical reasoner using Causal Chain-of-Thought methodology. Transform every math problem into a causal system analysis. Follow the format to answer the question.
-
-**PHASE 1: CAUSAL SYSTEM SETUP**
-- Identify all variables (observed, latent, dependent, independent)
-- Map causal relationships and constraints
-- Determine system boundaries and feasibility conditions
-
-**PHASE 2: CAUSAL STRUCTURE ANALYSIS**  
-- Trace how changes in one variable causally affect others
-- Identify causal bottlenecks and critical dependencies
-- Analyze counterfactual scenarios: "What if X were different?"
-
-**PHASE 3: CAUSAL INTERVENTION DESIGN**
-- Plan systematic approach to isolate unknowns
-- Design mathematical operations as targeted interventions
-- Predict how each intervention will propagate through the system
-
-**PHASE 4: CAUSAL CHAIN EXECUTION**
-- Execute interventions in causal order
-- Verify each step maintains causal consistency
-- Trace the complete causal path from given to solution
-
-**PHASE 5: CAUSAL VALIDATION**
-- Check if solution satisfies all original causal constraints
-- Verify counterfactual consistency
-- Confirm no causal contradictions exist
-
-Use this framework regardless of problem type. Let causal logic guide mathematical operations, not vice versa.
-
-Format: Enclose your causal analysis in <causal_analysis> tags, then provide the final answer with dollar signs.
-
-Problem: [INSERT PROBLEM HERE]
-
-<causal_analysis>
-[Your complete causal reasoning here]
-</causal_analysis>
-
-Final Answer: The final answer is $[ANSWER]$. I hope it is correct.
-
----
-
-Problem: There are 15 trees in the grove. Grove workers will plant trees in the grove today. After they are done, there will be 21 trees. How many trees did the grove workers plant today?
+Question: There are 15 trees in the grove. Grove workers will plant trees in the grove today. After they are done, there will be 21 trees. How many trees did the grove workers plant today?
 
 <causal_analysis>
 **PHASE 1: CAUSAL SYSTEM SETUP**
@@ -73,7 +32,8 @@ Final Answer: The final answer is $6$. I hope it is correct.
 
 ---
 
-Problem: If there are 3 cars in the parking lot and 2 more cars arrive, how many cars are in the parking lot?
+
+Question: If there are 3 cars in the parking lot and 2 more cars arrive, how many cars are in the parking lot?
 
 <causal_analysis>
 **PHASE 1: CAUSAL SYSTEM SETUP**
@@ -107,7 +67,8 @@ Final Answer: The final answer is $5$. I hope it is correct.
 
 ---
 
-Problem: Leah had 32 chocolates and her sister had 42. If they ate 35, how many pieces do they have left in total?
+
+Question: Leah had 32 chocolates and her sister had 42. If they ate 35, how many pieces do they have left in total?
 
 <causal_analysis>
 **PHASE 1: CAUSAL SYSTEM SETUP**
@@ -142,7 +103,8 @@ Final Answer: The final answer is $39$. I hope it is correct.
 
 ---
 
-Problem: Jason had 20 lollipops. He gave Denny some lollipops. Now Jason has 12 lollipops. How many lollipops did Jason give to Denny?
+
+Question: Jason had 20 lollipops. He gave Denny some lollipops. Now Jason has 12 lollipops. How many lollipops did Jason give to Denny?
 
 <causal_analysis>
 **PHASE 1: CAUSAL SYSTEM SETUP**
