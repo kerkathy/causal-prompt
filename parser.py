@@ -468,6 +468,9 @@ def parse_ground_truth(example: Dict[str, Any], data_name):
         gt_cot, gt_ans = None, abcd[example['answer']]
     elif data_name == "sat_math":
         gt_cot, gt_ans = None, example['Answer']
+    elif data_name == "cladder":
+        gt_cot = example['reasoning']
+        gt_ans = example['label']
     else:
         raise NotImplementedError(f"`{data_name}`")
     # post process
@@ -521,6 +524,8 @@ def parse_question(example, data_name):
                 options = regex.sub(rf'{ch} \) ', rf"({ch.upper()}) ", options)
         options = options.replace(' , ', ', ')
         question = f"{example['problem'].strip()}\nWhat of the following is the right choice? Explain your answer.\n{options.strip()}"
+    elif data_name == "cladder":
+        question = example['prompt'].strip()
     else:
         for key in ['question', 'problem', 'Question', 'input']:
             if key in example:

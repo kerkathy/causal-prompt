@@ -59,7 +59,7 @@ def load_prompt(data_name, prompt_type):
     if prompt_type in ['tool-integrated']:
         prompt_type = "tora"
 
-    if prompt_type in ['cot', 'pal', 'tora', 'causal', 'causal-consistency', 'causal-steps-fewshot']:
+    if prompt_type in ['cot', 'pal', 'tora', 'causal', 'causal-consistency', 'causal-steps-fewshot', 'cladder']:
         prompt_path = "./prompts/{}/{}.md".format(prompt_type, data_name)
         if not os.path.exists(prompt_path):
             prompt_path = "./prompts/{}.md".format(prompt_type)
@@ -79,16 +79,16 @@ def construct_prompt(example, data_name, args):
     if args.prompt_type in ["direct", "cot", "pal", "tool-integrated", "causal", "causal-consistency", "causal-steps-fewshot", "cot-8shot", "causal-8shot"]:
         demo_prompt = load_prompt(data_name, args.prompt_type)
         if args.prompt_type in ["direct", "cot-8shot", "causal-8shot", "cot", "causal", "causal-consistency"]:
-            if data_name in ["minerva_math", "math", "math_oai", "mmlu_stem", "sat_math", "mathqa", "hungarian_exam"]:
+            if data_name in ["minerva_math", "math", "math_oai", "mmlu_stem", "sat_math", "mathqa", "hungarian_exam", "cladder"]:
                 context = f"Problem:\n{example['question']}\nSolution:"
             else:
                 context = f"Question: {example['question']}\nAnswer:"
             full_prompt = demo_prompt + context
         elif args.prompt_type == "causal-steps-fewshot":
-            if data_name in ["minerva_math", "math", "math_oai", "mmlu_stem", "sat_math", "mathqa", "hungarian_exam"]:
-                context = f"Problem:\n{example['question']}\n<causal_analysis>\n\n"
+            if data_name in ["minerva_math", "math", "math_oai", "mmlu_stem", "sat_math", "mathqa", "hungarian_exam", "cladder"]:
+                context = f"Problem: {example['question']}\n\n<causal_analysis>\n\n"
             else:
-                context = f"Question: {example['question']}\n<causal_analysis>\n"
+                context = f"Question: {example['question']}\n\n<causal_analysis>\n\n"
             full_prompt = demo_prompt + context
         elif args.prompt_type == "pal":
             context = f"Question: {example['question']}"
