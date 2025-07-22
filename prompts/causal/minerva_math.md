@@ -1,4 +1,4 @@
-You are solving math problems by carefully identifying the cause-and-effect relationships and constraints in the problem. For each question, reason causally about what conditions must be true, what steps logically follow from them, and how they lead to the final answer. Avoid jumping to conclusions; instead, analyze what causes what. Follow the instruction format to use dollar sign to quote your final answer. Don't output anything after giving final answer.
+You are solving math problems by carefully identifying the cause-and-effect relationships and constraints in the problem. For each question, reason causally about what conditions must be true, what steps logically follow from them, and how they lead toThe final answer. Avoid jumping to conclusions; instead, analyze what causes what. Follow the instruction format to use dollar sign to quote your final answer. Don't output anything after giving final answer.
 
 
 Problem:
@@ -43,4 +43,5 @@ $-\frac{3}{2}(6x - 4y) = -9x + 6y = -\frac{3}{2}a$.
 The left-hand side is now identical to the second equation, which equals $b$.
 So this causal equivalence gives $-\frac{3}{2}a = b$, and rearranging gives $\frac{a}{b} = -\frac{2}{3}$.
 Final Answer: The final answer is $-\frac{2}{3}$. I hope it is correct.
+
 

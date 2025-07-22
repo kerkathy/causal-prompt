@@ -51,3 +51,5 @@ $-\frac{3}{2}(6x - 4y) = -9x + 6y = -\frac{3}{2}a$.
 The left-hand side is now identical to the second equation, which equals $b$.
 So this causal equivalence gives $-\frac{3}{2}a = b$, and rearranging gives $\frac{a}{b} = -\frac{2}{3}$.
 Final Answer: The final answer is (A).
+
+

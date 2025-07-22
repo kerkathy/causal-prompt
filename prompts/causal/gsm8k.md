@@ -15,4 +15,3 @@ Answer: To find how many chocolates remain, I need to trace what causes the fina
 Question: Jason had 20 lollipops. He gave Denny some lollipops. Now Jason has 12 lollipops. How many lollipops did Jason give to Denny?
 Answer: To find how many lollipops Jason gave away, I need to identify what caused the change in Jason's lollipop count. Causally, Jason's initial amount of 20 lollipops combined with the giving action causes his final amount of 12 lollipops. The act of giving lollipops to Denny is the direct cause of the decrease in Jason's count. Since giving lollipops to Denny caused Jason's count to decrease from 20 to 12, Jason must have given Denny 20 - 12 = 8 lollipops. The answer is 8.
 
-

@@ -22,6 +22,7 @@ Final Answer: The final answer is $\boxed{no}$. I hope it is correct.
 
 ---
 
+
 Problem:
 Imagine a self-contained, hypothetical world with only the following conditions, and without any unmentioned factors or causal relationships: Encouragement level has a direct effect on studying habit and exam score. Studying habit has a direct effect on exam score. For students who are not encouraged, the probability of high exam score is 26%. For students who are encouraged, the probability of high exam score is 72%. Will encouragement decrease the chance of high exam score?
 Solution:
@@ -43,6 +44,7 @@ Since this value is positive (0.46 > 0), encouragement actually increases the ch
 Final Answer: The final answer is $\boxed{no}$. I hope it is correct.
 
 ---
+
 
 Problem:
 Imagine a self-contained, hypothetical world with only the following conditions, and without any unmentioned factors or causal relationships: Vaccination status has a direct effect on vaccination reaction and getting smallpox. Getting smallpox has a direct effect on black hair. Vaccination reaction has a direct effect on black hair. The overall probability of vaccination is 14%. For unvaccinated individuals, the probability of black hair is 52%. For vaccinated individuals, the probability of black hair is 59%. Is black hair more likely than blond hair overall?
@@ -68,6 +70,7 @@ Final Answer: The final answer is $\boxed{yes}$. I hope it is correct.
 
 ---
 
+
 Problem:
 Imagine a self-contained, hypothetical world with only the following conditions, and without any unmentioned factors or causal relationships: Respiratory issues has a direct effect on hospitalization status. Broken bones has a direct effect on hospitalization status. For hospitalized individuals, the correlation between respiratory issues and broken bones is -0.02. If we look at hospitalized individuals, does it mean that respiratory issues does not affect broken bones?
 Solution:
@@ -88,3 +91,5 @@ This is because X and Y are causally independent - neither affects the other dir
 
 Since X and Y do not causally affect each other (the causal effect is 0), respiratory issues does not affect broken bones.
 Final Answer: The final answer is $\boxed{yes}$. I hope it is correct.
+
+---
