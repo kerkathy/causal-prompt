@@ -5,15 +5,17 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--model_name_or_path", type=str)
     parser.add_argument("--result_dir", type=str)
     parser.add_argument("--data_names", type=str, default="gsm8k,minerva_math,svamp,asdiv,mawps")
     parser.add_argument("--split", type=str, default="test")
     parser.add_argument("--prompt_types", type=str, default=None, help="Comma-separated list of prompt types to summarize. If not provided, will auto-detect.")
+    parser.add_argument("--num_test_sample", default=-1, type=int) # -1 for full data
     args = parser.parse_args()
-    summarize_results(args.result_dir, args.data_names, args.split, args.prompt_types)
+    summarize_results(args.model_name_or_path, args.result_dir, args.data_names, args.split, args.prompt_types, args.num_test_sample)
 
 
-def summarize_results(result_dir, data_names, split, prompt_types=None):
+def summarize_results(model_name_or_path, result_dir, data_names, split, prompt_types=None, num_test_sample=-1):
     data_list = data_names.split(',')
     
     # Auto-detect prompt types if not provided
@@ -50,14 +52,14 @@ def summarize_results(result_dir, data_names, split, prompt_types=None):
         accs = []
         missing_data = []
         for data_name in data_list:
-            files = glob.glob(f"{result_dir}/{data_name}/{split}_{prompt_type}_-1_*metrics.json")
+            files = glob.glob(f"{result_dir}/{data_name}/{split}_{prompt_type}_{num_test_sample}_*metrics.json")
             if len(files) == 0:
                 row.append(None)
                 missing_data.append(data_name)
             else:
                 if len(files) > 1:
                     print(f"Warning: Multiple metrics files found for {data_name} with prompt type {prompt_type}: {files}")
-                    print(f"Using the first one: {files[0]}")
+                print(f"Loading {files[0]}...")
                 with open(files[0], 'r') as f:
                     metrics = json.load(f)
                     acc = metrics.get("acc", None)
@@ -68,6 +70,8 @@ def summarize_results(result_dir, data_names, split, prompt_types=None):
         avg_acc = sum(accs) / len(accs) if accs else 0.0
         row.append(avg_acc)
         table.append(row)
+
+    print(f"\nModel: {model_name_or_path}")
 
     # Print table header
     col_names = data_list + ["avg"]
