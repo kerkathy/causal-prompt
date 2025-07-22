@@ -4,9 +4,10 @@ export HF_ENDPOINT="https://hf-mirror.com"
 # export TRANSFORMERS_OFFLINE=1
 # export HF_DATASETS_OFFLINE=1
 
-PROMPT_TYPE=$1
+# PROMPT_TYPE=$1
 # MODEL_NAME_OR_PATH=$2
-# PROMPT_TYPE=causal-consistency
+PROMPT_TYPE=cot
+# PROMPT_TYPE=cot,causal,causal-steps-fewshot
 # PROMPT_TYPE=causal-steps,causal-steps-fewshot
 
 # MODEL_NAME_OR_PATH=DeepSeek-R1-Distill-Qwen-7B
@@ -31,10 +32,10 @@ URL="https://llmapi.paratera.com/v1/"
 
 
 OUTPUT_DIR=./output/${MODEL_NAME_OR_PATH}/math_eval
-DATA_NAMES="minerva_math"
-# DATA_NAMES="gsm8k,minerva_math,svamp,asdiv,mawps,tabmwp,mathqa,mmlu_stem,sat_math"
+DATA_NAMES="cladder"
+# DATA_NAMES="gsm8k,minerva_math,svamp,asdiv,mawps,tabmwp,mathqa,mmlu_stem,sat_math,cladder"
 SPLIT="test"
-NUM_TEST_SAMPLE=-1
+NUM_TEST_SAMPLE=5
 
 
 # gpu setting

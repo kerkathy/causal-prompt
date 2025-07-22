@@ -114,8 +114,8 @@ def setup(args):
     elif args.use_vllm:
         from vllm import LLM, SamplingParams
         from huggingface_hub import snapshot_download
-        local_path = snapshot_download(args.model_name_or_path)
-        # local_path = snapshot_download(args.model_name_or_path, local_files_only=True)
+        # local_path = snapshot_download(args.model_name_or_path)
+        local_path = snapshot_download(args.model_name_or_path, local_files_only=True)
         llm = LLM(model=local_path, tensor_parallel_size=len(available_gpus), trust_remote_code=True)
         tokenizer = None
     else:
@@ -187,6 +187,7 @@ def main(llm, tokenizer, data_name, args):
         executor = PythonExecutor(get_answer_from_stdout=True)
 
     samples = []
+    first_idx = examples[0]['idx'] if len(examples) > 0 else 0
     for example in tqdm(examples, total=len(examples)):
         idx = example['idx']
 
@@ -195,8 +196,9 @@ def main(llm, tokenizer, data_name, args):
         gt_cot, gt_ans = parse_ground_truth(example, data_name)
         full_prompt = construct_prompt(example, data_name, args)
 
-        if idx == args.start:
-            print(full_prompt)
+        # if idx == args.start:
+        if idx == first_idx:
+            print("Full prompt: ", full_prompt)
             # Save the complete prompt example to a file
             prompt_file = out_file.replace(".jsonl", "_prompt_example.txt")
             with open(prompt_file, "w", encoding="utf-8") as f:
