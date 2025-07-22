@@ -239,11 +239,11 @@ def main(llm, tokenizer, data_name, args):
     if "Qwen" in args.model_name_or_path:
         stop_words.append(" is the final answer.")
 
-    if args.prompt_type in ['cot', 'causal', 'causal-consistency', 'causal-steps', 'causal-steps-fewshot']:
+    if args.prompt_type in ['direct', 'cot', 'causal', 'causal-consistency', 'causal-steps', 'causal-steps-fewshot']:
         # avoid continual generation conditioned on few-shot prompts
         if "deepseek" in args.model_name_or_path:
             stop_words.append("</think>")
-        stop_words.extend(["\n\nQuestion:", "\n\nProblem:", "\n\n**Problem:**"])
+        stop_words.extend(["\n\nQuestion:", "\n\nProblem:", "\n\n**Problem:**", "I hope it is correct.", "question:", "Question:", "Problem:", "problem:"])
     if args.prompt_type in ['pal', 'tool-integrated', 'tora']:
         stop_words.extend(["\n\n---", "```output"])
     elif args.prompt_type in ['wizard_zs', 'platypus_fs']:
