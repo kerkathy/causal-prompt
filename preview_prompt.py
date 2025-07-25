@@ -32,7 +32,7 @@ def build_prompt(data_name, args):
 
         # if idx == args.start:
         if idx == first_idx:
-            print("Full prompt: ", full_prompt)
+            print("Full prompt:\n", "-" * 50, "\n", full_prompt, "\n" + "-" * 50)
             # Save the complete prompt example to a file
             prompt_file = out_file.replace(".jsonl", "_prompt_example.txt")
             with open(prompt_file, "w", encoding="utf-8") as f:

@@ -1,5 +1,3 @@
-You are solving math problems by carefully identifying the cause-and-effect relationships and constraints in the problem. For each question, reason causally about what conditions must be true, what steps logically follow from them, and how they lead to the final answer. Avoid jumping to conclusions; instead, analyze what causes what. 
-
 Question: There are 15 trees in the grove. Grove workers will plant trees in the grove today. After they are done, there will be 21 trees. How many trees did the grove workers plant today?
 Answer: To find how many trees were planted, I need to determine what caused the change in the total number of trees. Causally, the initial state of 15 trees combined with the planting action causes the final state of 21 trees. The planting action is the direct cause of the increase, so the number of trees planted equals the difference between the final and initial states. Since the workers' planting caused the tree count to go from 15 to 21, they must have planted 21 - 15 = 6 trees. The answer is 6.
 

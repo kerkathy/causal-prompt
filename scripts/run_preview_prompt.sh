@@ -18,8 +18,8 @@ URL="https://llmapi.paratera.com/v1/"
 
 
 OUTPUT_DIR=./output/${MODEL_NAME_OR_PATH}/math_eval
-DATA_NAMES="cladder"
-# DATA_NAMES="gsm8k,minerva_math,svamp,asdiv,mawps,tabmwp,mathqa,mmlu_stem,sat_math,cladder"
+DATA_NAMES="cf-arithmetic-base9"
+# DATA_NAMES="gsm8k,minerva_math,svamp,asdiv,mawps,tabmwp,mathqa,mmlu_stem,sat_math,cladder,cf-arithmetic-base9"
 SPLIT="test"
 NUM_TEST_SAMPLE=3
 
