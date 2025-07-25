@@ -2,7 +2,7 @@ import os
 import json
 import random
 from datasets import load_dataset, Dataset, concatenate_datasets
-from utils import load_jsonl, lower_keys
+from utils import load_jsonl, lower_keys, cf_answer, cf_templatize, cf_get_label
 
 
 def load_data(data_name, split, data_dir='./data'):
@@ -26,6 +26,20 @@ def load_data(data_name, split, data_dir='./data'):
             import pandas as pd
             df = pd.DataFrame(examples)
             df.to_csv(data_file, index=False)
+    elif data_name == "cf-arithmetic-base9":
+        data_file = f"{data_dir}/{data_name}/{split}.txt"
+        if not os.path.exists(data_file):
+            raise FileNotFoundError(f"Data file {data_file} does not exist.")
+        # data_name looks like: cf-arithmetic-base9
+        # extract 9 from data_name
+        base = data_name.split('-')[-1].replace("base", "")
+        data = [line.strip() for line in open(data_file)]
+        examples = [{
+            "question": cf_templatize(expr, int(base), cot=True, n_shots=0),
+            "idx": i,
+            "gt_cot": cf_answer(expr, int(base)),
+            "gt": cf_get_label(expr, int(base))
+        } for i, expr in enumerate(data)]
     else:
         data_file = f"{data_dir}/{data_name}/{split}.jsonl"
         if os.path.exists(data_file):

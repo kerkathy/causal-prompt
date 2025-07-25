@@ -59,7 +59,7 @@ def load_prompt(data_name, prompt_type):
     if prompt_type in ['tool-integrated']:
         prompt_type = "tora"
 
-    if prompt_type in ['cot', 'pal', 'tora', 'causal', 'causal-consistency', 'causal-steps-fewshot', 'cladder']:
+    if prompt_type in ['cot', 'pal', 'tora', 'causal', 'causal-consistency', 'causal-steps-fewshot', 'cladder', 'cf-arithmetic-base9']:
         prompt_path = "./prompts/{}/{}.md".format(prompt_type, data_name)
         if not os.path.exists(prompt_path):
             prompt_path = "./prompts/{}.md".format(prompt_type)
@@ -76,9 +76,9 @@ def load_prompt(data_name, prompt_type):
 
 def construct_prompt(example, data_name, args):
     # Base models
-    if args.prompt_type in ["direct", "cot", "pal", "tool-integrated", "causal", "causal-consistency", "causal-steps-fewshot", "cot-8shot", "causal-8shot"]:
+    if args.prompt_type in ["direct", "cot", "pal", "tool-integrated", "causal", "causal-consistency", "causal-steps-fewshot", "cot-8shot", "causal-8shot", "cf-arithmetic-base9"]:
         demo_prompt = load_prompt(data_name, args.prompt_type)
-        if args.prompt_type in ["direct", "cot-8shot", "causal-8shot", "cot", "causal", "causal-consistency"]:
+        if args.prompt_type in ["direct", "cot-8shot", "causal-8shot", "cot", "causal", "causal-consistency", "cf-arithmetic-base9"]:
             if data_name in ["minerva_math", "math", "math_oai", "mmlu_stem", "sat_math", "mathqa", "hungarian_exam", "cladder"]:
                 context = f"Problem:\n{example['question']}\nSolution:"
             else:
@@ -191,3 +191,53 @@ def show_sample(sample, print_all_preds=False):
             _key  = key_map.get(key, key)
             print("{}: {}".format(_key, repr(sample[key])))
     print()
+
+# From https://github.com/ZhaofengWu/counterfactual-evaluation
+def cf_get_label(expr, base):
+    lhs, rhs = expr.split("+")
+    lhs_base10 = int(lhs, base)
+    rhs_base10 = int(rhs, base)
+    sum_base10 = lhs_base10 + rhs_base10
+    return np.base_repr(sum_base10, base)
+
+def cf_answer(expr, base):
+    lhs, rhs = expr.split("+")
+    lt, lo = lhs  # tens, ones
+    rt, ro = rhs
+    ones_sum = cf_get_label(f"{lo}+{ro}", base)
+    carry_over = len(ones_sum) > 1
+    tens_sum_wo_carry = cf_get_label(f"{lt}+{rt}", base)
+    if carry_over:
+        assert ones_sum[0] == "1"
+        tens_sum_w_carry = cf_get_label(f"{tens_sum_wo_carry}+1", base)
+    else:
+        tens_sum_w_carry = tens_sum_wo_carry
+    assert cf_get_label(expr, base) == tens_sum_w_carry + ones_sum[-1:]
+
+    ret = f"We add the ones digits first. In base-{base}, {lo}+{ro}={ones_sum}. So the ones digit of the final sum is {ones_sum[-1:]}. "
+    if carry_over:
+        ret += f"We need to carry over the 1 to the tens place. "
+    else:
+        ret += f"We do not need to carry any digits over. "
+    ret += f"Then we add the tens digits. In base-{base}, {lt}+{rt}={tens_sum_wo_carry}. "
+    if carry_over:
+        ret += f"Since we carried over the 1, {tens_sum_wo_carry}+1={tens_sum_w_carry}. "
+    if len(tens_sum_w_carry) == 1:
+        ret += f"So the tens digit of the final sum is {tens_sum_w_carry}. "
+    else:
+        ret += f"So the hundreds and tens digits of the final sum are {tens_sum_w_carry}. "
+    ret += f"Putting the digits of the final sum together, we get \\boxed{{{tens_sum_w_carry}{ones_sum[-1:]}}}."
+    return ret
+
+def cf_templatize(expr, base, cot=True, n_shots=0):
+    if n_shots > 0:
+        expr, demos = expr.split("\t")
+        shots = demos.split(",")[:n_shots]
+        assert len(shots) == n_shots
+        context = "\n".join(f"{cf_templatize(shot, base)} {cf_answer(shot, base)}" for shot in shots)
+        return context + "\n" + cf_templatize(expr, base)
+    digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    if cot:
+        return f"You are a mathematician. Assuming that all numbers are in base-{base} where the digits are \"{digits[:base]}\", what is {expr}?"
+    else:
+        return f"You are a mathematician. Assuming that all numbers are in base-{base} where the digits are \"{digits[:base]}\", what is {expr}?"
