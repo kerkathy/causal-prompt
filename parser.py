@@ -491,6 +491,9 @@ def parse_ground_truth(example: Dict[str, Any], data_name):
     elif data_name == "cladder":
         gt_cot = example['reasoning']
         gt_ans = example['label']
+    elif data_name == "cf-arithmetic-base9":
+        gt_cot = example['context']
+        gt_ans = example['answer']
     else:
         raise NotImplementedError(f"`{data_name}`")
     # post process
@@ -546,6 +549,8 @@ def parse_question(example, data_name):
         question = f"{example['problem'].strip()}\nWhat of the following is the right choice? Explain your answer.\n{options.strip()}"
     elif data_name == "cladder":
         question = example['prompt'].strip()
+    elif data_name == "cf-arithmetic-base9":
+        question = example['question'].strip()
     else:
         for key in ['question', 'problem', 'Question', 'input']:
             if key in example:
