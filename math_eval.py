@@ -77,7 +77,7 @@ def prepare_data(data_name, args):
         for f in processed_files:
             processed_samples.extend(list(load_jsonl(f"{args.output_dir}/{data_name}/{f}")))
 
-    # dedepulicate
+    # deduplicate
     print("len(processed_samples):", len(processed_samples))
     
     # Check for duplicates and keep first occurrence
@@ -139,6 +139,7 @@ def setup(args):
         data_list = args.data_names.split(',')
         results = []
         for data_name in data_list:
+            set_seed(args.seed) # to ensure every run uses the samed data!!
             results.append(main(llm, tokenizer, data_name, args))
         
         # add "avg" result to data_list and results
